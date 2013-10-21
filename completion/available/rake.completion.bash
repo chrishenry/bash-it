@@ -9,7 +9,7 @@ _rakecomplete() {
         if [[ $recent != '.rake_tasks~' ]]; then
             rake --silent --tasks | cut -d " " -f 2 > .rake_tasks~
         fi
-        COMPREPLY=($(compgen -W "`cat .rake_tasks~`" -- ${COMP_WORDS[COMP_CWORD]}))
+        COMPREPLY=($(compgen -c -W "`cat .rake_tasks~`" -- ${COMP_WORDS[COMP_CWORD]} | cut -d "[" -f 1))
         return 0
     fi
 }
