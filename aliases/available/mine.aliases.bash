@@ -14,3 +14,4 @@ alias gs='git status'
 
 alias bx='bundle exec '
 alias bek='bundle exec kitchen '
+alias biv='bundle install --path .vendor'

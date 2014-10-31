@@ -31,4 +31,4 @@ alias dsclean='find . -type f -name .DS_Store -print0 | xargs -0 rm'
 alias whotunes='lsof -r 2 -n -P -F n -c iTunes -a -i TCP@`hostname`:3689'
 
 # Flush your dns cache
-alias flush='dscacheutil -flushcache'
+alias flush='sudo killall -HUP mDNSResponder'
