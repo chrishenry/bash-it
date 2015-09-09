@@ -38,7 +38,7 @@ alias gg="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %
 alias ggs="gg --stat"
 alias gsl="git shortlog -sn"
 alias gw="git whatchanged"
-alias gundo="git reset HEAD~1"
+alias gpup="git pull && git submodule init && git submodule update && git submodule status"
 
 if [ -z "$EDITOR" ]; then
     case $OSTYPE in
