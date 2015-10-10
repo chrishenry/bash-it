@@ -55,3 +55,6 @@ fi
 # Directory
 alias	md='mkdir -p'
 alias	rd='rmdir'
+
+# dig
+alias dig='dig +short +noshort'
