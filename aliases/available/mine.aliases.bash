@@ -25,4 +25,4 @@ alias pjson='python -m json.tool'
 
 #
 # Rando
-alias path='echo $PATH | tr ":" "\n"'
+alias path='echo $PATH | tr ":" "\n" | sort | uniq'
