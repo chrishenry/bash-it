@@ -22,3 +22,7 @@ alias biv='bundle install --path .vendor'
 #
 # Prettify JSON
 alias pjson='python -m json.tool'
+
+#
+# Rando
+alias path='echo $PATH | tr ":" "\n"'
