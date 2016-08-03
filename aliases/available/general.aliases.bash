@@ -60,4 +60,4 @@ alias	rd='rmdir'
 alias dig='dig +short +noshort'
 
 # grep
-alias grep='grep -n --color'
+alias grep='grep --color'

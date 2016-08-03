@@ -39,6 +39,7 @@ alias ggs="gg --stat"
 alias gsl="git shortlog -sn"
 alias gw="git whatchanged"
 alias gpup="git pull && git submodule init && git submodule update && git submodule status"
+alias gpum="git pull upstream master && git push"
 
 if [ -z "$EDITOR" ]; then
     case $OSTYPE in
