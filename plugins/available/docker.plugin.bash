@@ -7,6 +7,12 @@ function docker-remove-most-recent-container() {
   docker ps -a | head -2 | tail -1 | awk '{print $NF}' | xargs docker rm
 }
 
+function docker-remove-old-containers() {
+  about 'attempt to remove containers older than a week'
+  group 'docker'
+  docker ps -a | grep 'weeks ago' | awk '{print $1}' | xargs docker rm
+}
+
 function docker-remove-most-recent-image() {
   about 'attempt to remove the most recent image from docker images'
   group 'docker'
