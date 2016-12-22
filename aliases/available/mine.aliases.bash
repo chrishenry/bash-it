@@ -26,3 +26,6 @@ alias pjson='python -m json.tool'
 #
 # Rando
 alias path='echo $PATH | tr ":" "\n" | sort | uniq'
+
+# Gitchangelog
+alias gcl="gitchangelog show master..`git status -b -s | sed -e "s/## //"`"
