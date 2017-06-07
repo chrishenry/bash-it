@@ -1,5 +1,15 @@
 #!/bin/bash
 
+dco-up ()
+{
+  dco up -d $1 && dco logs -f $1
+}
+
+dco-bounce ()
+{
+  dco stop $1 && dco rm -f $1 && dco-up $1
+}
+
 dco-shell ()
 {
   if [ -z "$1" ]
