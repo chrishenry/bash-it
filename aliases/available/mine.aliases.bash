@@ -2,7 +2,6 @@
 # Aliases
 alias ll='ls -al'
 alias la='ls -al'
-alias s='sretry'
 
 #
 # Git aliases
@@ -31,3 +30,7 @@ alias path='echo $PATH | tr ":" "\n" | sort | uniq'
 # Gitchangelog
 alias gcrb='git status -b -s | sed -e "s/## //"'
 
+#
+# SSH Aliases
+alias s='sretry'
+alias fingerprint='ssh-keygen -l -E md5 -f'
