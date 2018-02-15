@@ -34,3 +34,7 @@ alias gcrb='git status -b -s | sed -e "s/## //"'
 # SSH Aliases
 alias s='sretry'
 alias fingerprint='ssh-keygen -l -E md5 -f'
+
+#
+# Python webserver
+alias serve='python -m SimpleHTTPServer 8000'

@@ -23,6 +23,7 @@ alias gca='git commit -v -a'
 alias gci='git commit --interactive'
 alias gcm='git commit -m'
 alias gb='git branch'
+alias gbl='git branch -l'
 alias ghb='git browse'
 alias gba='git branch -a'
 alias gcount='git shortlog -sn'
@@ -40,6 +41,7 @@ alias gsl="git shortlog -sn"
 alias gw="git whatchanged"
 alias gpup="git pull && git submodule init && git submodule update && git submodule status"
 alias gpum="git pull upstream master && git push"
+alias gorig="find . -name '*.orig' -delete"
 
 if [ -z "$EDITOR" ]; then
     case $OSTYPE in
