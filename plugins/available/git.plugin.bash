@@ -1,6 +1,14 @@
 cite about-plugin
 about-plugin 'git helper functions'
 
+function git_add_wildcard {
+  about 'adds file wrapped in wildcards. ie *notes*'
+  group 'git'
+
+  echo "Running: git add *$1*"
+  git add *$1*
+}
+
 function git_remote {
   about 'adds remote $GIT_HOSTING:$1 to current repo'
   group 'git'

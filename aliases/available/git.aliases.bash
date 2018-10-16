@@ -4,6 +4,7 @@ about-alias 'common git abbreviations'
 # Aliases
 alias gcl='git clone'
 alias ga='git add'
+alias gaw='git_add_wildcard'
 alias gall='git add .'
 alias g='git'
 alias get='git'
