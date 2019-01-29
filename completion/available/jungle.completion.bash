@@ -1,7 +1,7 @@
 _jungle_completion() {
     COMPREPLY=( $( env COMP_WORDS="${COMP_WORDS[*]}" \
                    COMP_CWORD=$COMP_CWORD \
-                   _JUNGLE_COMPLETE=complete $1 ) )
+[[ -x "$(which jungle)" ]] && eval "$(_JUNGLE_COMPLETE=source jungle)"
     return 0
 }
 

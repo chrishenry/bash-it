@@ -1,98 +1,189 @@
 #!/usr/bin/env bash
-BASH_IT="$HOME/.bash_it"
+# bash-it installer
 
-test -w $HOME/.bash_profile &&
-  cp $HOME/.bash_profile $HOME/.bash_profile.bak &&
-  echo "Your original .bash_profile has been backed up to .bash_profile.bak"
+# Show how to use this installer
+function show_usage() {
+  echo -e "\n$0 : Install bash-it"
+  echo -e "Usage:\n$0 [arguments] \n"
+  echo "Arguments:"
+  echo "--help (-h): Display this help message"
+  echo "--silent (-s): Install default settings without prompting for input";
+  echo "--interactive (-i): Interactively choose plugins"
+  echo "--no-modify-config (-n): Do not modify existing config file"
+  exit 0;
+}
 
-cp $HOME/.bash_it/template/bash_profile.template.bash $HOME/.bash_profile
+# enable a thing
+function load_one() {
+  file_type=$1
+  file_to_enable=$2
+  mkdir -p "$BASH_IT/${file_type}/enabled"
 
-echo "Copied the template .bash_profile into ~/.bash_profile, edit this file to customize bash-it"
+  dest="${BASH_IT}/${file_type}/enabled/${file_to_enable}"
+  if [ ! -e "${dest}" ]; then
+    ln -sf "../available/${file_to_enable}" "${dest}"
+  else
+    echo "File ${dest} exists, skipping"
+  fi
+}
 
-while true
-do
-  read -p "Do you use Jekyll? (If you don't know what Jekyll is, answer 'n') [Y/N] " RESP
+# Interactively enable several things
+function load_some() {
+  file_type=$1
+  single_type=$(echo "$file_type" | sed -e "s/aliases$/alias/g" | sed -e "s/plugins$/plugin/g")
+  enable_func="_enable-$single_type"
+  [ -d "$BASH_IT/$file_type/enabled" ] || mkdir "$BASH_IT/$file_type/enabled"
+  for path in "$BASH_IT/${file_type}/available/"[^_]*
+  do
+    file_name=$(basename "$path")
+    while true
+    do
+      just_the_name="${file_name%%.*}"
+      read -e -n 1 -p "Would you like to enable the $just_the_name $file_type? [y/N] " RESP
+      case $RESP in
+      [yY])
+        $enable_func $just_the_name
+        break
+        ;;
+      [nN]|"")
+        break
+        ;;
+      *)
+        echo -e "\033[91mPlease choose y or n.\033[m"
+        ;;
+      esac
+    done
+  done
+}
 
-  case $RESP
-    in
-    [yY])
-      cp $HOME/.bash_it/template/jekyllconfig.template.bash $HOME/.jekyllconfig
-      echo "Copied the template .jekyllconfig into your home directory. Edit this file to customize bash-it for using the Jekyll plugins"
-      break
-      ;;
-    [nN])
-      break
-      ;;
-    *)
-      echo "Please enter Y or N"
+# Back up existing profile and create new one for bash-it
+function backup_new() {
+  test -w "$HOME/$CONFIG_FILE" &&
+  cp -aL "$HOME/$CONFIG_FILE" "$HOME/$CONFIG_FILE.bak" &&
+  echo -e "\033[0;32mYour original $CONFIG_FILE has been backed up to $CONFIG_FILE.bak\033[0m"
+  sed "s|{{BASH_IT}}|$BASH_IT|" "$BASH_IT/template/bash_profile.template.bash" > "$HOME/$CONFIG_FILE"
+  echo -e "\033[0;32mCopied the template $CONFIG_FILE into ~/$CONFIG_FILE, edit this file to customize bash-it\033[0m"
+}
+
+for param in "$@"; do
+  shift
+  case "$param" in
+    "--help")               set -- "$@" "-h" ;;
+    "--silent")             set -- "$@" "-s" ;;
+    "--interactive")        set -- "$@" "-i" ;;
+    "--no-modify-config")   set -- "$@" "-n" ;;
+    *)                      set -- "$@" "$param"
   esac
 done
 
-function load_all() {
-  file_type=$1
-  [ ! -d "$BASH_IT/$file_type/enabled" ] && mkdir "$BASH_IT/${file_type}/enabled"
-  for src in $BASH_IT/${file_type}/available/*; do
-      filename="$(basename ${src})"
-      [ ${filename:0:1} = "_" ] && continue
-      dest="${BASH_IT}/${file_type}/enabled/${filename}"
-      if [ ! -e "${dest}" ]; then
-          ln -s "${src}" "${dest}"
-      else
-          echo "File ${dest} exists, skipping"
-      fi
-  done
-}
-
-function load_some() {
-    file_type=$1
-    for path in `ls $BASH_IT/${file_type}/available/[^_]*`
-    do
-      if [ ! -d "$BASH_IT/$file_type/enabled" ]
-      then
-        mkdir "$BASH_IT/$file_type/enabled"
-      fi
-      file_name=$(basename "$path")
-      while true
-      do
-        read -p "Would you like to enable the ${file_name%%.*} $file_type? [Y/N] " RESP
-        case $RESP in
-        [yY])
-          ln -s "$path" "$BASH_IT/$file_type/enabled"
-          break
-          ;;
-        [nN])
-          break
-          ;;
-        *)
-          echo "Please choose y or n."
-          ;;
-        esac
-      done
-    done
-}
-
-for type in "aliases" "plugins" "completion"
+OPTIND=1
+while getopts "hsin" opt
 do
-  while true
-  do
-    read -p "Would you like to enable all, some, or no $type? Some of these may make bash slower to start up (especially completion). (all/some/none) " RESP
-    case $RESP
-    in
-    some)
-      load_some $type
+  case "$opt" in
+  "h") show_usage; exit 0 ;;
+  "s") silent=true ;;
+  "i") interactive=true ;;
+  "n") no_modify_config=true ;;
+  "?") show_usage >&2; exit 1 ;;
+  esac
+done
+shift $(expr $OPTIND - 1)
+
+if [[ $silent ]] && [[ $interactive ]]; then
+  echo -e "\033[91mOptions --silent and --interactive are mutually exclusive. Please choose one or the other.\033[m"
+  exit 1;
+fi
+
+BASH_IT="$(cd "$(dirname "$0")" && pwd)"
+
+case $OSTYPE in
+  darwin*)
+    CONFIG_FILE=.bash_profile
+    ;;
+  *)
+    CONFIG_FILE=.bashrc
+    ;;
+esac
+
+BACKUP_FILE=$CONFIG_FILE.bak
+echo "Installing bash-it"
+if ! [[ $silent ]] && ! [[ $no_modify_config ]]; then
+  if [ -e "$HOME/$BACKUP_FILE" ]; then
+    echo -e "\033[0;33mBackup file already exists. Make sure to backup your .bashrc before running this installation.\033[0m" >&2
+    while ! [ $silent ];  do
+      read -e -n 1 -r -p "Would you like to overwrite the existing backup? This will delete your existing backup file ($HOME/$BACKUP_FILE) [y/N] " RESP
+      case $RESP in
+      [yY])
+        break
+        ;;
+      [nN]|"")
+        echo -e "\033[91mInstallation aborted. Please come back soon!\033[m"
+        exit 1
+        ;;
+      *)
+        echo -e "\033[91mPlease choose y or n.\033[m"
+        ;;
+      esac
+    done
+  fi
+
+  while ! [ $silent ]; do
+    read -e -n 1 -r -p "Would you like to keep your $CONFIG_FILE and append bash-it templates at the end? [y/N] " choice
+    case $choice in
+    [yY])
+      test -w "$HOME/$CONFIG_FILE" &&
+      cp -aL "$HOME/$CONFIG_FILE" "$HOME/$CONFIG_FILE.bak" &&
+      echo -e "\033[0;32mYour original $CONFIG_FILE has been backed up to $CONFIG_FILE.bak\033[0m"
+
+      (sed "s|{{BASH_IT}}|$BASH_IT|" "$BASH_IT/template/bash_profile.template.bash" | tail -n +2) >> "$HOME/$CONFIG_FILE"
+      echo -e "\033[0;32mBash-it template has been added to your $CONFIG_FILE\033[0m"
       break
       ;;
-    all)
-      load_all $type
-      break
-      ;;
-    none)
+    [nN]|"")
+      backup_new
       break
       ;;
     *)
-      echo "Unknown choice. Please enter some, all, or none"
-      continue
+      echo -e "\033[91mPlease choose y or n.\033[m"
       ;;
     esac
   done
-done
+elif [[ $silent ]] && ! [[ $no_modify_config ]]; then
+  # backup/new by default
+  backup_new
+fi
+
+# Load dependencies for enabling components
+source "$BASH_IT/lib/composure.bash"
+source "$BASH_IT/lib/utilities.bash"
+cite _about _param _example _group _author _version
+source "$BASH_IT/lib/helpers.bash"
+
+if [[ $interactive ]] && ! [[ $silent ]] ;
+then
+  for type in "aliases" "plugins" "completion"
+  do
+    echo -e "\033[0;32mEnabling $type\033[0m"
+    load_some $type
+  done
+else
+  echo ""
+  echo -e "\033[0;32mEnabling reasonable defaults\033[0m"
+  _enable-completion bash-it
+  _enable-completion system
+  _enable-plugin base
+  _enable-plugin alias-completion
+  _enable-alias general
+fi
+
+echo ""
+echo -e "\033[0;32mInstallation finished successfully! Enjoy bash-it!\033[0m"
+echo -e "\033[0;32mTo start using it, open a new tab or 'source "$HOME/$CONFIG_FILE"'.\033[0m"
+echo ""
+echo "To show the available aliases/completions/plugins, type one of the following:"
+echo "  bash-it show aliases"
+echo "  bash-it show completions"
+echo "  bash-it show plugins"
+echo ""
+echo "To avoid issues and to keep your shell lean, please enable only features you really want to use."
+echo "Enabling everything can lead to issues."

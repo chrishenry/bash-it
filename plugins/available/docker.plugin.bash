@@ -4,18 +4,26 @@ about-plugin 'Helpers to more easily work with Docker'
 function docker-remove-most-recent-container() {
   about 'attempt to remove the most recent container from docker ps -a'
   group 'docker'
+  docker ps -ql | xargs docker rm
   docker ps -a | head -2 | tail -1 | awk '{print $NF}' | xargs docker rm
-}
-
-function docker-remove-old-containers() {
-  about 'attempt to remove containers older than a week'
-  group 'docker'
-  docker ps -a | grep 'weeks ago' | awk '{print $1}' | xargs docker rm
 }
 
 function docker-remove-most-recent-image() {
   about 'attempt to remove the most recent image from docker images'
+function docker-remove-old-containers() {
+  about 'attempt to remove containers older than a week'
   group 'docker'
+  docker images -q | head -1 | xargs docker rmi
+  docker ps -a | grep 'weeks ago' | awk '{print $1}' | xargs docker rm
+}
+
+function docker-remove-stale-assets() {
+  about 'attempt to remove exited containers and dangling images'
+function docker-remove-most-recent-image() {
+  about 'attempt to remove the most recent image from docker images'
+  group 'docker'
+  docker ps --filter status=exited -q | xargs docker rm --volumes
+  docker images --filter dangling=true -q | xargs docker rmi
   docker images | head -2 | tail -1 | awk '{print $3}' | xargs docker rmi
 }
 
@@ -66,4 +74,15 @@ function docker-runtime-environment() {
   about 'attempt to list the environmental variables of the supplied image ID'
   group 'docker'
   docker run "$@" env
+}
+
+function docker-archive-content() {
+  about 'show the content of the provided Docker image archive'
+  group 'docker'
+  param '1: image archive name'
+  example 'docker-archive-content images.tar.gz'
+
+  if [ -n "$1" ]; then
+    tar -xzOf $1 manifest.json | jq '[.[] | .RepoTags] | add'
+  fi
 }

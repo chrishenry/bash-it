@@ -25,6 +25,92 @@ function git_first_push {
   git push origin master:refs/heads/master
 }
 
+function git_pub() {
+  about 'publishes current branch to remote origin'
+  group 'git'
+  BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+  echo "Publishing ${BRANCH} to remote origin"
+  git push -u origin $BRANCH
+}
+
+function git_revert() {
+  about 'applies changes to HEAD that revert all changes after this commit'
+  group 'git'
+
+  git reset $1
+  git reset --soft HEAD@{1}
+  git commit -m "Revert to ${1}"
+  git reset --hard
+}
+
+function git_rollback() {
+  about 'resets the current HEAD to this commit'
+  group 'git'
+
+  function is_clean() {
+    if [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]]; then
+      echo "Your branch is dirty, please commit your changes"
+      kill -INT $$
+    fi
+  }
+
+  function commit_exists() {
+    git rev-list --quiet $1
+    status=$?
+    if [ $status -ne 0 ]; then
+      echo "Commit ${1} does not exist"
+      kill -INT $$
+    fi
+  }
+
+  function keep_changes() {
+    while true
+    do
+      read -p "Do you want to keep all changes from rolled back revisions in your working tree? [Y/N]" RESP
+      case $RESP
+      in
+      [yY])
+        echo "Rolling back to commit ${1} with unstaged changes"
+        git reset $1
+        break
+        ;;
+      [nN])
+        echo "Rolling back to commit ${1} with a clean working tree"
+        git reset --hard $1
+        break
+        ;;
+      *)
+        echo "Please enter Y or N"
+      esac
+    done
+  }
+
+  if [ -n "$(git symbolic-ref HEAD 2> /dev/null)" ]; then
+    is_clean
+    commit_exists $1
+
+    while true
+    do
+      read -p "WARNING: This will change your history and move the current HEAD back to commit ${1}, continue? [Y/N]" RESP
+      case $RESP
+        in
+        [yY])
+          keep_changes $1
+          break
+          ;;
+        [nN])
+          break
+          ;;
+        *)
+          echo "Please enter Y or N"
+      esac
+    done
+  else
+    echo "you're currently not in a git repository"
+  fi
+}
+
 function git_remove_missing_files() {
   about "git rm's missing files"
   group 'git'
@@ -119,4 +205,81 @@ else
     echo "you're currently not in a git repository"
 fi
 }
+
+function gittowork() {
+  about 'Places the latest .gitignore file for a given project type in the current directory, or concatenates onto an existing .gitignore'
+  group 'git'
+  param '1: the language/type of the project, used for determining the contents of the .gitignore file'
+  example '$ gittowork java'
+
+  result=$(curl -L "https://www.gitignore.io/api/$1" 2>/dev/null)
+
+  if [[ $result =~ ERROR ]]; then
+    echo "Query '$1' has no match. See a list of possible queries with 'gittowork list'"
+  elif [[ $1 = list ]]; then
+    echo "$result"
+  else
+    if [[ -f .gitignore ]]; then
+      result=`echo "$result" | grep -v "# Created by http://www.gitignore.io"`
+      echo ".gitignore already exists, appending..."
+      echo "$result" >> .gitignore
+    else
+      echo "$result" > .gitignore
+    fi
+  fi
+}
+
+function gitignore-reload() {
+  about 'Empties the git cache, and readds all files not blacklisted by .gitignore'
+  group 'git'
+  example '$ gitignore-reload'
+
+    # The .gitignore file should not be reloaded if there are uncommited changes.
+  # Firstly, require a clean work tree. The function require_clean_work_tree() 
+  # was stolen with love from https://www.spinics.net/lists/git/msg142043.html
+
+  # Begin require_clean_work_tree()
+
+  # Update the index
+  git update-index -q --ignore-submodules --refresh
+  err=0
+
+  # Disallow unstaged changes in the working tree
+  if ! git diff-files --quiet --ignore-submodules --
+  then
+    echo >&2 "ERROR: Cannot reload .gitignore: Your index contains unstaged changes."
+    git diff-index --cached --name-status -r --ignore-submodules HEAD -- >&2
+    err=1
+  fi
+
+  # Disallow uncommited changes in the index
+  if ! git diff-index --cached --quiet HEAD --ignore-submodules
+  then
+    echo >&2 "ERROR: Cannot reload .gitignore: Your index contains uncommited changes."
+    git diff-index --cached --name-status -r --ignore-submodules HEAD -- >&2
+    err=1
+  fi
+
+  # Prompt user to commit or stash changes and exit
+  if [ $err = 1 ]
+  then
+    echo >&2 "Please commit or stash them."
+  fi
+
+  # End require_clean_work_tree()
+
+  # If we're here, then there are no uncommited or unstaged changes dangling around.
+  # Proceed to reload .gitignore
+  if [ $err = 0 ]; then
+    # Remove all cached files
+    git rm -r --cached .
+
+    # Re-add everything. The changed .gitignore will be picked up here and will exclude the files
+    # now blacklisted by .gitignore
+    echo >&2 "Running git add ."
+    git add .
+    echo >&2 "Files readded. Commit your new changes now."
+  fi
+}
+
 

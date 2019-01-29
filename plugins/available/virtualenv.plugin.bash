@@ -1,9 +1,13 @@
 # make sure virtualenvwrapper is enabled if available
 
 cite about-plugin
-about-plugin 'virtualenvwrapper helper functions'
+about-plugin 'virtualenvwrapper and pyenv-virtualenvwrapper helper functions'
 
-[[ `which virtualenvwrapper.sh` ]] && . virtualenvwrapper.sh
+if _command_exists pyenv; then
+  pyenv virtualenvwrapper
+else
+  [[ `which virtualenvwrapper.sh` ]] && . virtualenvwrapper.sh
+fi
 
 
 function mkvenv {
@@ -19,14 +23,14 @@ function mkvbranch {
   about 'create a new virtualenv for the current branch'
   group 'virtualenv'
 
-  mkvirtualenv --distribute "$(basename `pwd`)@$(git_prompt_info)"
+  mkvirtualenv --distribute "$(basename `pwd`)@$SCM_BRANCH"
 }
 
 function wovbranch {
   about 'sets workon branch'
   group 'virtualenv'
 
-  workon "$(basename `pwd`)@$(git_prompt_info)"
+  workon "$(basename `pwd`)@$SCM_BRANCH"
 }
 
 function wovenv {
