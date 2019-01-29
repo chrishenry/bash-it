@@ -69,7 +69,7 @@ USER_HOST_THEME_PROMPT_SUFFIX=''
 
 VIRTUAL_ENV=
 
-VIRTUALENV_THEME_PROMPT_PREFIX='|'
+VIRTUALENV_THEME_PROMPT_PREFIX=' |'
 VIRTUALENV_THEME_PROMPT_SUFFIX='|'
 
 RBENV_THEME_PROMPT_PREFIX=' |'
@@ -377,8 +377,6 @@ function clock_char {
 
   if [[ "${SHOW_CLOCK_CHAR}" = "true" ]]; then
     echo -e "${CLOCK_CHAR_COLOR}${CLOCK_CHAR_THEME_PROMPT_PREFIX}${CLOCK_CHAR}${CLOCK_CHAR_THEME_PROMPT_SUFFIX}"
-    if [ -n "$virtualenv" ]; then
-      echo -e "$VIRTUALENV_THEME_PROMPT_PREFIX$virtualenv$VIRTUALENV_THEME_PROMPT_SUFFIX "
   fi
 }
 
@@ -391,7 +389,6 @@ function clock_prompt {
   if [[ "${SHOW_CLOCK}" = "true" ]]; then
     CLOCK_STRING=$(date +"${CLOCK_FORMAT}")
     echo -e "${CLOCK_COLOR}${CLOCK_THEME_PROMPT_PREFIX}${CLOCK_STRING}${CLOCK_THEME_PROMPT_SUFFIX}"
-    fi
   fi
 }
 
@@ -441,8 +438,8 @@ function battery_char {
 if ! _command_exists battery_charge ; then
     # if user has installed battery plugin, skip this...
     function battery_charge (){
-	# no op
-	echo -n
+  # no op
+  echo -n
     }
 fi
 
@@ -450,8 +447,8 @@ fi
 # If battery_percentage is not defined, then define battery_char as a no-op.
 if ! _command_exists battery_percentage ; then
     function battery_char (){
-	# no op
-	echo -n
+  # no op
+  echo -n
     }
 fi
 

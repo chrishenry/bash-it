@@ -101,6 +101,7 @@ alias xt="extract"
 
 # dig
 alias dig='dig +short +noshort'
+
 # sudo editors
 alias svim="sudo vim"
 alias snano="sudo nano"

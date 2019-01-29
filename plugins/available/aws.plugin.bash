@@ -1,6 +1,5 @@
 cite about-plugin
 about-plugin 'AWS helper functions'
-about-plugin 'Helpful AWS tools'
 
 AWS_CONFIG_FILE="${AWS_CONFIG_FILE:-$HOME/.aws/config}"
 AWS_SHARED_CREDENTIALS_FILE="${AWS_SHARED_CREDENTIALS_FILE:-$HOME/.aws/credentials}"
@@ -71,29 +70,19 @@ function __awskeys_export {
     if [[ $(__awskeys_list) == *"$1"* ]]; then
         local p_keys=( $(__awskeys_get $1 | tr -d " ") )
         if [[ -n "${p_keys}" ]]; then
-aws-account ()
-{
             for p_key in ${p_keys[@]}; do
                 local key="${p_key%=*}"
                 export "$(echo ${key} | tr [:lower:] [:upper:])=${p_key#*=}"
-  about 'show the account alias'
             done
         fi
         export AWS_PROFILE="$1"
-  group 'aws'
     else
         echo "Profile $1 not found in credentials file"
-  aws iam list-account-aliases
     fi
 }
 
-aws-bastion ()
 function __awskeys_unset {
     unset AWS_PROFILE AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
-{
-  about 'Public dns of the bastion host'
-  group 'aws'
-  aws ec2 describe-instances --filter Name=tag:component,Values=bastion --query 'Reservations[].Instances[].PublicDnsName' | jq  '.[0]' | sed 's/"//g'
 }
 
 function __awskeys_comp {
@@ -117,12 +106,7 @@ function __awskeys_comp {
 
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
 
-aws-rds ()
-{
-  about 'Existing RDS instance hostnames'
-  group 'aws'
     return 0
-  aws rds describe-db-instances --query "DBInstances[].Endpoint[].Address" | jq  '.[0]' | sed 's/"//g'
 }
 
 complete -F __awskeys_comp awskeys

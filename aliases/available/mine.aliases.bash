@@ -2,6 +2,7 @@
 # Aliases
 alias ll='ls -al'
 alias la='ls -al'
+alias grep='grep --color'
 
 #
 # Git aliases
