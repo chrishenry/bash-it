@@ -21,6 +21,13 @@ dco-shell ()
   docker-compose exec $service /bin/bash
 }
 
+dco-run ()
+{
+  # Figure out a way to grab the service
+  #   Maybe a flag param instead of positional?
+  docker-compose run web $@
+}
+
 dco-rebuild ()
 {
   if [ -z "$1" ]
@@ -29,7 +36,7 @@ dco-rebuild ()
   else
     service="$1"
   fi
-  docker-compose stop $service && docker-compose rm -f $service && docker-compose build $service && dco-up
+  docker-compose stop $service && docker-compose rm -f $service && time docker-compose build $service && dco-up
 }
 
 dco-restart ()
