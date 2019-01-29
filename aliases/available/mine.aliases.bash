@@ -26,6 +26,7 @@ alias pjson='python -m json.tool'
 #
 # Rando
 alias path='echo $PATH | tr ":" "\n" | sort | uniq'
+alias reload='bash-it reload'
 
 #
 # Gitchangelog
