@@ -14,6 +14,10 @@ alias gs='git status'
 alias gcpp='gco master && gpp'
 
 #
+# AWS aliases
+alias aws-account='aws iam list-account-aliases'
+
+#
 # Bundler aliases
 alias bx='bundle exec '
 alias bek='bundle exec kitchen '
