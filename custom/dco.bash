@@ -36,7 +36,7 @@ dco-rebuild ()
   else
     service="$1"
   fi
-  docker-compose stop $service && docker-compose rm -f $service && time docker-compose build $service && dco-up
+  docker-compose stop $service && docker-compose rm -f $service && time docker-compose build $service && dco-up $service
 }
 
 dco-restart ()
